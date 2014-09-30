@@ -13,11 +13,12 @@ const bufferSize = 32 * 1024
 
 type Writer struct {
 	// Underlying writer
-	w io.WriteSeeker
+	w   io.WriteSeeker
+	enc Encoder
 }
 
-func NewWriter(w io.WriteSeeker) *Writer {
-	return &Writer{w}
+func NewWriter(w io.WriteSeeker, enc Encoder) *Writer {
+	return &Writer{w, enc}
 }
 
 // Not thread-safe
@@ -30,8 +31,7 @@ func (wt *Writer) Append(d io.Reader) (offset int64, err error) {
 	}
 	data, err = ioutil.ReadAll(d)
 	rec := Record{data: data}
-	enc := NewRecordEncoder(wt.w)
-	err = enc.Encode(&rec)
+	err = enc.Encode(wt.w, &rec)
 	if err != nil {
 		return 0, err
 	}
